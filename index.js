@@ -1,29 +1,35 @@
 const express = require('express');
 const path = require('path');
+const exphbs = require('express-handlebars');
 const logger = require('./middleware/logger');
-const members = require('./members');
+const members = require('./Members');
 
 const app = express();
 
-// init middleware
-// app.use(logger)
+// Init middleware
+// app.use(logger);
 
-// Get all membrs 
-app.get('/api/members', (req, res) => res.json(members));
+// Handlebars Middleware
+app.engine('handlebars', exphbs());
+app.set('view engine', 'handlebars');
 
-// get single member
-app.get('/api/members/:id', (req, res) => {
-    // res.send(req.params.id);
-    res.json(members.filter( members => members.id === parseInt(req.params.id)));
+// Body Parser Middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
-});
+// Homepage Route
+app.get('/', (req, res) =>
+  res.render('index', {
+    title: 'Member App',
+    members
+  })
+);
 
-// app.get('/', (req, res) => {
-    // res.send('<h1>Hello World</h1')
-    // res.sendFile(path.join(__dirname, 'public', 'index.html'))
-    // set static folder 
-// })
-app.use(express.static(path.join(__dirname, 'public')))
+// Set static folder
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Members API Routes
+app.use('/api/members', require('./routes/api/members'));
 
 const PORT = process.env.PORT || 5000;
 
